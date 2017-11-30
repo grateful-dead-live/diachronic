@@ -1,7 +1,14 @@
+import os
 import numpy as np
+from collections import OrderedDict
 
-def list_features():
-    return []
+def get_all_n3_files(path):
+    files = [root+'/'+name for root, dirs, files in os.walk(path) for name in files]
+    return filter(lambda n: n.endswith('.n3'), files)
+
+def get_all_features(dir):
+    all_files = [f.split('_')[-1].split('.')[0] for f in get_all_n3_files(dir)]
+    return list(OrderedDict.fromkeys(all_files))
 
 def xsdDurationToFloat(duration):
     return float(duration.split('"')[1].replace('PT', '').replace('S', ''))

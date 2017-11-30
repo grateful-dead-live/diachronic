@@ -56,10 +56,15 @@ def get_song_versions_by_year(songname):
         by_year[track['year']].append({i:track[i] for i in track if i!='year'})
     return by_year
 
+def get_all_song_names():
+    with open(SONG_MAP, 'r') as file:
+        return list(json.load(file).keys())
+
 def get_shows_by_year():
     #TODO
     return
 
 #save_items()
-create_song_map()
+#create_song_map()
+#print get_song_versions_by_year(get_all_song_names()[5])
 #print get_song_versions_by_year('Sugar Magnolia')

@@ -4,9 +4,6 @@ from rdflib import Graph, Namespace, RDF
 AF = Namespace('http://purl.org/ontology/af/')
 TIMELINE = Namespace('http://purl.org/NET/c4dm/timeline.owl#')
 
-def list_features():
-    return []
-
 def xsdDurationToPython(duration):
     return float(duration.toPython().replace('PT', '').replace('S', ''))
 
