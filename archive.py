@@ -53,10 +53,9 @@ def simplify_song_map():
     song_map = read_json(SONG_MAP)
     song_map2 = defaultdict(list)
     for song_name, versions in song_map.iteritems():
-        print song_name
         simple_name = ''.join([c for c in song_name if c.isalpha() or c == ' '])
         simple_name = simple_name.lower()
-        song_map2[simple_name].append(versions)
+        song_map2[simple_name].extend(versions)
     write_json(song_map2, SONG_MAP2)
 
 
