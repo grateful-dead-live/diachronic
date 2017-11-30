@@ -5,6 +5,7 @@ import internetarchive as ia
 AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
 SBD_ITEMS = 'data/sbd_items.json'
 SONG_MAP = 'data/song_map.json'
+SONG_MAP2 = 'data/song_map2.json'
 
 def read_json(file):
     with open(file, 'r') as lfile:
@@ -48,17 +49,26 @@ def create_song_map():
                 song_map[track['title']].append(version)
     write_json(song_map, SONG_MAP)
 
+def simplify_song_map():
+    song_map = read_json(SONG_MAP)
+    song_map2 = defaultdict(list)
+    for song_name, versions in song_map.iteritems():
+        print song_name
+        simple_name = ''.join([c for c in song_name if c.isalpha() or c == ' '])
+        simple_name = simple_name.lower()
+        song_map2[simple_name].append(versions)
+    write_json(song_map2, SONG_MAP2)
+
+
 def get_song_versions_by_year(songname):
-    with open(SONG_MAP, 'r') as file:
-        versions = json.load(file)[songname]
+    versions = read_json(SONG_MAP2)[songname]
     by_year = defaultdict(list)
     for track in versions:
         by_year[track['year']].append({i:track[i] for i in track if i!='year'})
     return by_year
 
 def get_all_song_names():
-    with open(SONG_MAP, 'r') as file:
-        return list(json.load(file).keys())
+    return list(read_json(SONG_MAP2).keys())
 
 def get_shows_by_year():
     #TODO
@@ -66,5 +76,6 @@ def get_shows_by_year():
 
 #save_items()
 #create_song_map()
+simplify_song_map()
 #print get_song_versions_by_year(get_all_song_names()[5])
 #print get_song_versions_by_year('Sugar Magnolia')
