@@ -7,7 +7,7 @@ from archive import get_all_song_names, get_song_versions_by_year
 
 SONG_NAME = 'Sugar Magnolia'
 FEATURE = 'tempo'
-AUDIO_DIRS = 'test/'#'../../thomasw/grateful_dead/lma_soundboards/sbd/'
+AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
 
 
 def get_all_n3_files_of_type(path, type):
