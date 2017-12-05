@@ -68,6 +68,7 @@ def lineplot_song_versions(song, features):
     labels = ['versions'] + features
     yearly_features = []
     num_versions = [len(v) for y, v in versions_by_years]
+    normalize(num_versions, axis=0, norm='max')
     yearly_features.append(num_versions)
     for j, feature in enumerate(features):
         #add versions/year count to features
