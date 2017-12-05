@@ -1,12 +1,13 @@
 import os
 import numpy as np
+from sklearn.preprocessing import normalize
 import seaborn as sns
+import matplotlib.pyplot as plt
 import internetarchive as ia
 from hispeedfeatures import load_feature, get_all_features, get_all_n3_files
 from archive import get_all_song_names, get_song_versions_by_year
 
-SONG_NAME = 'Sugar Magnolia'
-FEATURE = 'tempo'
+SONG_NAME = 'sugar magnolia'
 AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
 
 
@@ -37,33 +38,58 @@ def get_all_joined_features(path, type):
 def get_joined_features(paths_and_audio, type):
     return load_and_join_features(get_n3_files_of_type(paths_and_audio, type))
 
-def plot_features(features, file):
-    #features = [f.tolist() for f in features]
+def boxplot_features(features, file):
     plot = sns.boxplot(data=features, showfliers=False)
     plot.get_figure().savefig(file)
     plot.get_figure().clf()
 
-def test_plot():
-    dir = AUDIO_DIRS
-    dirs = [dir+d for d in os.listdir(dir) if os.path.isdir(os.path.join(dir, d))]
-    features = map(lambda p: get_all_joined_features(p, 'zcr'), dirs)
-    plot_features(features, 'results/'+FEATURE+'.png')
+def lineplot(lines, labels, xticks, file):
+    [plt.plot(line, label=labels[i]) for i, line in enumerate(lines)]
+    plt.legend(loc=5)
+    plt.xticks(np.arange(len(xticks)), tuple(xticks))
+    plt.savefig(file)
 
-def plot_song_versions(song, feature):
+def lineplot2(lines, file):
+    plot = sns.tsplot(data=lines)
+    plot.get_figure().savefig(file)
+    plot.get_figure().clf()
+
+def boxplot_song_versions(song, feature):
     yearly_versions = get_song_versions_by_year(song)
     yearly_features = []
     for year, versions in sorted(yearly_versions.iteritems()):
         print song, feature, year
         yearly_features.append(get_joined_features(versions, feature))
-    plot_features(yearly_features, 'results/'+song+'_'+feature+'.png')
+    boxplot_features(yearly_features, 'results/'+song+'_'+feature+'.png')
 
-song_names = get_all_song_names()
-features = get_all_features(AUDIO_DIRS)
-for i, song in enumerate(song_names):
+def lineplot_song_versions(song, features):
+    versions_by_years = sorted(get_song_versions_by_year(song).iteritems())
+    years = [str(y) for y, v in versions_by_years]
+    labels = ['versions'] + features
+    yearly_features = []
+    num_versions = [len(v) for y, v in versions_by_years]
+    yearly_features.append(num_versions)
     for j, feature in enumerate(features):
-        print 'S'+str(i)+'/'+str(len(song_names)), 'F'+str(j)+'/'+str(len(features))
-        plot_song_versions(song, feature)
-    print '--------------------------------------'
+        #add versions/year count to features
+        current_feature = []
+        for year, versions in versions_by_years:
+            print song, feature, '('+str(j+1)+'/'+str(len(features))+')', year
+            year_median = np.median(get_joined_features(versions, feature))
+            current_feature.append(year_median)
+        current_feature = np.array(current_feature).reshape(-1, 1)
+        current_feature = normalize(current_feature, axis=0, norm='max')
+        yearly_features.append(current_feature)
+    lineplot(yearly_features, labels, years, 'results/'+song+'_overview.png')
 
-#plot_song_versions(SONG_NAME, FEATURE)
+def plot_all_songs_and_features():
+    song_names = get_all_song_names()
+    features = get_all_features(AUDIO_DIRS)
+    for i, song in enumerate(song_names):
+        for j, feature in enumerate(features):
+            print 'S'+str(i)+'/'+str(len(song_names)), 'F'+str(j)+'/'+str(len(features))
+            plot_song_versions(song, feature)
+        print '--------------------------------------'
+
+#boxplot_song_versions(SONG_NAME, 'tempo')
+lineplot_song_versions(SONG_NAME, ['tempo', 'key', 'amplitude', 'centroid'])
 #test_plot()

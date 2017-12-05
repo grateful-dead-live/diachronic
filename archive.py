@@ -75,6 +75,6 @@ def get_shows_by_year():
 
 #save_items()
 #create_song_map()
-simplify_song_map()
+#simplify_song_map()
 #print get_song_versions_by_year(get_all_song_names()[5])
 #print get_song_versions_by_year('Sugar Magnolia')
