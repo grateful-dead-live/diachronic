@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from sklearn.preprocessing import normalize
+from sklearn.preprocessing import normalize as sklnorm
 import seaborn as sns
 import matplotlib.pyplot as plt
 import internetarchive as ia
@@ -43,10 +43,12 @@ def boxplot_features(features, file):
     plot.get_figure().savefig(file)
     plot.get_figure().clf()
 
-def lineplot(lines, labels, xticks, file):
+def lineplot(lines, labels, xticks, title, file):
     [plt.plot(line, label=labels[i]) for i, line in enumerate(lines)]
     plt.legend(loc=5)
     plt.xticks(np.arange(len(xticks)), tuple(xticks))
+    #plt.locator_params(axis='x', nticks=5)
+    plt.title(title)
     plt.savefig(file)
 
 def lineplot2(lines, file):
@@ -62,14 +64,18 @@ def boxplot_song_versions(song, feature):
         yearly_features.append(get_joined_features(versions, feature))
     boxplot_features(yearly_features, 'results/'+song+'_'+feature+'.png')
 
+def normalize(feature):
+    feature = np.array(feature).reshape(-1, 1)
+    return sklnorm(feature, axis=0, norm='max')
+
 def lineplot_song_versions(song, features):
     versions_by_years = sorted(get_song_versions_by_year(song).iteritems())
-    years = [str(y) for y, v in versions_by_years]
+    years = [str(y).replace('19', '') for y, v in versions_by_years]
     labels = ['versions'] + features
     yearly_features = []
     num_versions = [len(v) for y, v in versions_by_years]
-    normalize(num_versions, axis=0, norm='max')
-    yearly_features.append(num_versions)
+    yearly_features.append(normalize(num_versions))
+    title = song + ' ('+ str(sum(num_versions)) +' versions)'
     for j, feature in enumerate(features):
         #add versions/year count to features
         current_feature = []
@@ -77,10 +83,8 @@ def lineplot_song_versions(song, features):
             print song, feature, '('+str(j+1)+'/'+str(len(features))+')', year
             year_median = np.median(get_joined_features(versions, feature))
             current_feature.append(year_median)
-        current_feature = np.array(current_feature).reshape(-1, 1)
-        current_feature = normalize(current_feature, axis=0, norm='max')
-        yearly_features.append(current_feature)
-    lineplot(yearly_features, labels, years, 'results/'+song+'_overview.png')
+        yearly_features.append(normalize(current_feature))
+    lineplot(yearly_features, labels, years, title, 'results/'+song+'_overview.png')
 
 def plot_all_songs_and_features():
     song_names = get_all_song_names()
