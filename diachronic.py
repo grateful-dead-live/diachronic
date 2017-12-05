@@ -68,6 +68,21 @@ def normalize(feature):
     feature = np.array(feature).reshape(-1, 1)
     return sklnorm(feature, axis=0, norm='max')
 
+def fit_polynomial(data):
+    #improve for year gaps!!
+    xs = np.arange(len(data))
+    z = np.polyfit(xs, data[:,0], 1)
+    f = np.poly1d(z)
+    return f(xs)
+
+def sliding_mean(data, window=5):
+    cumsum = np.cumsum(np.insert(data, 0, 0))
+    means = (cumsum[window:] - cumsum[:-window]) / window
+    beginning = np.arange(window)
+    beginning = [sum(data[:(i+1)])/(i+1) for i in beginning]
+    beginning = [b[0] for b in beginning]
+    return np.append(np.array(beginning), np.array(means))
+
 def lineplot_song_versions(song, features):
     versions_by_years = sorted(get_song_versions_by_year(song).iteritems())
     years = [str(y).replace('19', '') for y, v in versions_by_years]
@@ -77,13 +92,13 @@ def lineplot_song_versions(song, features):
     yearly_features.append(normalize(num_versions))
     title = song + ' ('+ str(sum(num_versions)) +' versions)'
     for j, feature in enumerate(features):
-        #add versions/year count to features
         current_feature = []
         for year, versions in versions_by_years:
             print song, feature, '('+str(j+1)+'/'+str(len(features))+')', year
             year_median = np.median(get_joined_features(versions, feature))
             current_feature.append(year_median)
         yearly_features.append(normalize(current_feature))
+    yearly_features = [sliding_mean(yf) for yf in yearly_features]
     lineplot(yearly_features, labels, years, title, 'results/'+song+'_overview.png')
 
 def plot_all_songs_and_features():
