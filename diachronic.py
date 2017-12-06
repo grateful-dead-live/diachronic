@@ -7,7 +7,7 @@ import internetarchive as ia
 from hispeedfeatures import load_feature, get_all_features, get_all_n3_files
 from archive import get_all_song_names, get_song_versions_by_year
 
-SONG_NAME = 'sugar magnolia'
+SONG_NAME = 'bird song'
 AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
 
 
@@ -75,13 +75,14 @@ def fit_polynomial(data):
     f = np.poly1d(z)
     return f(xs)
 
-def sliding_mean(data, window=5):
+def sliding_mean(data, window=4):
     cumsum = np.cumsum(np.insert(data, 0, 0))
     means = (cumsum[window:] - cumsum[:-window]) / window
-    beginning = np.arange(window)
-    beginning = [sum(data[:(i+1)])/(i+1) for i in beginning]
-    beginning = [b[0] for b in beginning]
-    return np.append(np.array(beginning), np.array(means))
+    pad = np.arange(window/2)
+    beginning = [(sum(data[:(i+1)])/(i+1))[0] for i in pad]
+    end = [(sum(data[-(i+1):])/(i+1))[0] for i in pad].reverse()
+    means = np.append(np.array(beginning), np.array(means))
+    return np.append(np.array(means), np.array(end))
 
 def lineplot_song_versions(song, features):
     versions_by_years = sorted(get_song_versions_by_year(song).iteritems())
@@ -89,7 +90,7 @@ def lineplot_song_versions(song, features):
     labels = ['versions'] + features
     yearly_features = []
     num_versions = [len(v) for y, v in versions_by_years]
-    yearly_features.append(normalize(num_versions))
+    yearly_features.append(num_versions)
     title = song + ' ('+ str(sum(num_versions)) +' versions)'
     for j, feature in enumerate(features):
         current_feature = []
@@ -97,7 +98,7 @@ def lineplot_song_versions(song, features):
             print song, feature, '('+str(j+1)+'/'+str(len(features))+')', year
             year_median = np.median(get_joined_features(versions, feature))
             current_feature.append(year_median)
-        yearly_features.append(normalize(current_feature))
+    yearly_features = [normalize(yf) for yf in yearly_features]
     yearly_features = [sliding_mean(yf) for yf in yearly_features]
     lineplot(yearly_features, labels, years, title, 'results/'+song+'_overview.png')
 
