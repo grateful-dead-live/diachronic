@@ -6,6 +6,7 @@ AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
 SBD_ITEMS = 'data/sbd_items.json'
 SONG_MAP = 'data/song_map.json'
 SONG_MAP2 = 'data/song_map2.json'
+TOP_SONG_MAP = 'data/top_song_map2.json'
 
 def read_json(file):
     with open(file, 'r') as lfile:
@@ -67,11 +68,7 @@ def get_song_versions_by_year(songname):
     return by_year
 
 def get_all_song_names():
-    return list(read_json(SONG_MAP2).keys())
-
-def get_shows_by_year():
-    #TODO
-    return
+    return list(read_json(TOP_SONG_MAP).keys())
 
 #save_items()
 #create_song_map()

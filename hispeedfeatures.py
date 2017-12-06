@@ -2,6 +2,15 @@ import os
 import numpy as np
 from collections import OrderedDict
 
+def create_feature_map(dir):
+    default = {'log': True, 'events': False}
+    features = {name: default for name in get_all_features(dir)}
+    [features[f].update({'events': True}) for f in ['onsets', 'beats']]
+    nonlog = ['onsets', 'beats', 'chromagram', 'key', 'coefficients', 'tempo',
+        'inharmonicity', 'tonality', 'zcr']
+    [features[f].update({'log': False}) for f in nonlog]
+    return features
+
 def get_all_n3_files(path):
     files = [root+'/'+name for root, dirs, files in os.walk(path) for name in files]
     return filter(lambda n: n.endswith('.n3'), files)

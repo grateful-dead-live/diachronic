@@ -4,39 +4,39 @@ from sklearn.preprocessing import normalize as sklnorm
 import seaborn as sns
 import matplotlib.pyplot as plt
 import internetarchive as ia
-from hispeedfeatures import load_feature, get_all_features, get_all_n3_files
+from hispeedfeatures import load_feature, get_all_features, get_all_n3_files, create_feature_map
 from archive import get_all_song_names, get_song_versions_by_year
 
-SONG_NAME = 'bird song'
 AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
+FEATURES = create_feature_map(AUDIO_DIRS)
 
 
-def get_all_n3_files_of_type(path, type):
-    return filter(lambda n: type in n, get_all_n3_files(path))
-
-def get_n3_file_of_type(paths_and_audio, type):
-    path = AUDIO_DIRS+paths_and_audio['recording']#TODO PUT TEST/ SOMEWHERE ELSE!!
-    audio = paths_and_audio['track'].split('.')[0]
-    return filter(lambda f: audio in f and type in f, get_all_n3_files(path))
+def get_n3_file_of_type(path_and_audio, type):
+    path = AUDIO_DIRS+path_and_audio['recording']
+    audio = path_and_audio['track'].split('.')[0]
+    return [f for f in get_all_n3_files(path) if audio in f and type in f]
 
 def get_n3_files_of_type(paths_and_audio, type):
     return [f for pa in paths_and_audio for f in get_n3_file_of_type(pa, type)]
 
-def load_and_join_features(featurefiles):
+def load_features(featurefiles):
     features = map(load_feature, featurefiles)
-    features = filter(lambda f: f.shape[0] > 0, features)
-    return np.concatenate(features)
+    #only non-empty features...
+    return filter(lambda f: f.shape[0] > 0, features)
 
-def load_and_join_features_means(featurefiles):
-    features = map(load_feature, featurefiles)
-    features = filter(lambda f: f.shape[0] > 0, features)
-    return [f.mean() for f in features]
+def get_joined_features(paths_and_audio, name):
+    features = load_features(get_n3_files_of_type(paths_and_audio, name))
+    if FEATURES[name]['events']:
+        return [len(f) for f in features]
+    else:
+        return np.concatenate(features)
 
-def get_all_joined_features(path, type):
-    return load_and_join_features(get_all_n3_files_of_type(path, type))
-
-def get_joined_features(paths_and_audio, type):
-    return load_and_join_features(get_n3_files_of_type(paths_and_audio, type))
+def get_summarized_features(paths_and_audio, name):
+    features = get_joined_features(paths_and_audio, name)
+    if FEATURES[name]['events']:
+        return np.mean(features)
+    else:
+        return np.median(features)
 
 def boxplot_features(features, file):
     plot = sns.boxplot(data=features, showfliers=False)
@@ -50,6 +50,7 @@ def lineplot(lines, labels, xticks, title, file):
     #plt.locator_params(axis='x', nticks=5)
     plt.title(title)
     plt.savefig(file)
+    plt.clf()
 
 def lineplot2(lines, file):
     plot = sns.tsplot(data=lines)
@@ -94,23 +95,27 @@ def lineplot_song_versions(song, features):
     title = song + ' ('+ str(sum(num_versions)) +' versions)'
     for j, feature in enumerate(features):
         current_feature = []
+        print song, feature, '('+str(j+1)+'/'+str(len(features))+')'
         for year, versions in versions_by_years:
-            print song, feature, '('+str(j+1)+'/'+str(len(features))+')', year
-            year_median = np.median(get_joined_features(versions, feature))
-            current_feature.append(year_median)
+            #print song, feature, '('+str(j+1)+'/'+str(len(features))+')', year
+            current_feature.append(get_summarized_features(versions, feature))
+        if FEATURES[feature]['log']:
+            current_feature = [math.log(f) for f in current_feature]
+        yearly_features.append(current_feature)
     yearly_features = [normalize(yf) for yf in yearly_features]
     yearly_features = [sliding_mean(yf) for yf in yearly_features]
     lineplot(yearly_features, labels, years, title, 'results/'+song+'_overview.png')
 
-def plot_all_songs_and_features():
+def plot_all_songs(features):
     song_names = get_all_song_names()
-    features = get_all_features(AUDIO_DIRS)
     for i, song in enumerate(song_names):
-        for j, feature in enumerate(features):
-            print 'S'+str(i)+'/'+str(len(song_names)), 'F'+str(j)+'/'+str(len(features))
-            plot_song_versions(song, feature)
-        print '--------------------------------------'
+        print song, 'S'+str(i)+'/'+str(len(song_names))
+        lineplot_song_versions(song, features)
+        #print '--------------------------------------'
+
+def plot_all_songs_and_features():
+    plot_all_songs(get_all_features(AUDIO_DIRS))
 
 #boxplot_song_versions(SONG_NAME, 'tempo')
-lineplot_song_versions(SONG_NAME, ['tempo', 'key', 'amplitude', 'centroid'])
+plot_all_songs(['tempo', 'onsets', 'amplitude', 'beats'])
 #test_plot()
