@@ -1,4 +1,4 @@
-import os
+import os, math
 import numpy as np
 from sklearn.preprocessing import normalize as sklnorm
 import seaborn as sns
@@ -29,14 +29,14 @@ def get_joined_features(paths_and_audio, name):
     if FEATURES[name]['events']:
         return [len(f) for f in features]
     else:
-        return np.concatenate(features)
+        return [np.median(f) for f in features]#np.concatenate(features)
 
 def get_summarized_features(paths_and_audio, name):
     features = get_joined_features(paths_and_audio, name)
     if FEATURES[name]['events']:
         return np.mean(features)
     else:
-        return np.median(features)
+        return np.mean(features)#np.median(features)
 
 def boxplot_features(features, file):
     plot = sns.boxplot(data=features, showfliers=False)
@@ -85,7 +85,7 @@ def sliding_mean(data, window=4):
     means = np.append(np.array(beginning), np.array(means))
     return np.append(np.array(means), np.array(end))
 
-def lineplot_song_versions(song, features):
+def lineplot_song_versions(song, features, extension):
     versions_by_years = sorted(get_song_versions_by_year(song).iteritems())
     years = [str(y).replace('19', '') for y, v in versions_by_years]
     labels = ['versions', 'duration'] + features
@@ -113,18 +113,22 @@ def lineplot_song_versions(song, features):
         yearly_features.append(current_feature)
     yearly_features = [normalize(yf) for yf in yearly_features]
     yearly_features = [sliding_mean(yf) for yf in yearly_features]
-    lineplot(yearly_features, labels, years, title, 'results/'+song+'_overview2.png')
+    lineplot(yearly_features, labels, years, title, 'results/'+song+'_'+extension+'.png')
 
-def plot_all_songs(features):
+def plot_all_songs(features, extension):
     song_names = get_all_song_names()
     for i, song in enumerate(song_names):
         print song, str(i+1)+'/'+str(len(song_names))
-        lineplot_song_versions(song, features)
+        lineplot_song_versions(song, features, extension)
         #print '--------------------------------------'
 
 def plot_all_songs_and_features():
     plot_all_songs(get_all_features(AUDIO_DIRS))
 
+#check_stats()
+
 #boxplot_song_versions(SONG_NAME, 'tempo')
-plot_all_songs(['tempo', 'onsets', 'amplitude', 'beats'])
+#lineplot_song_versions('big river', ['amplitude'])
+plot_all_songs(['inharmonicity', 'zcr', 'loudness', 'crest', 'centroid', 'spread'], 'overview3')
+plot_all_songs(['tempo', 'onsets', 'amplitude', 'beats'], 'overview2')
 #test_plot()

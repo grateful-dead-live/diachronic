@@ -3,8 +3,7 @@ import numpy as np
 from collections import OrderedDict
 
 def create_feature_map(dir):
-    default = {'log': True, 'events': False}
-    features = {name: default for name in get_all_features(dir)}
+    features = {name: {'log': True, 'events': False} for name in get_all_features(dir)}
     [features[f].update({'events': True}) for f in ['onsets', 'beats']]
     nonlog = ['onsets', 'beats', 'chromagram', 'key', 'coefficients', 'tempo',
         'inharmonicity', 'tonality', 'zcr']
@@ -16,6 +15,8 @@ def get_all_n3_files(path):
     return filter(lambda n: n.endswith('.n3'), files)
 
 def get_all_features(dir):
+    #find all features in first folder
+    dir = dir+'/'+os.listdir(dir)[1]
     all_files = [f.split('_')[-1].split('.')[0] for f in get_all_n3_files(dir)]
     return list(OrderedDict.fromkeys(all_files))
 
