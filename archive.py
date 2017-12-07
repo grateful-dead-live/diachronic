@@ -8,6 +8,8 @@ SONG_MAP = 'data/song_map.json'
 SONG_MAP2 = 'data/song_map2.json'
 TOP_SONG_MAP = 'data/top_song_map2.json'
 
+LOADED_SBD = None
+
 def read_json(file):
     with open(file, 'r') as lfile:
         return json.load(lfile)
@@ -30,6 +32,19 @@ def save_items():
 
 def get_tracks(item):
     return filter(lambda i: 'track' in i and '.mp3' in i['name'], item['files'])
+
+def get_track_durations(ids_and_tracks):
+    global LOADED_SBD
+    if LOADED_SBD is None:
+        LOADED_SBD = read_json(SBD_ITEMS)
+    durations = []
+    for it in ids_and_tracks:
+        files = LOADED_SBD[it['recording']]['files']
+        track = [f for f in files if f['name'] == it['track']]
+        m, s = [int(t) for t in track[0]['length'].split(':')]
+        durations.append(m*60+s)
+    print ids_and_tracks, durations
+    return durations
 
 def create_song_map():
     json = read_json(SBD_ITEMS)
@@ -58,7 +73,6 @@ def simplify_song_map():
         simple_name = simple_name.lower()
         song_map2[simple_name].extend(versions)
     write_json(song_map2, SONG_MAP2)
-
 
 def get_song_versions_by_year(songname):
     versions = read_json(TOP_SONG_MAP)[songname]

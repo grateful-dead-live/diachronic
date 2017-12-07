@@ -5,7 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import internetarchive as ia
 from hispeedfeatures import load_feature, get_all_features, get_all_n3_files, create_feature_map
-from archive import get_all_song_names, get_song_versions_by_year
+from archive import get_all_song_names, get_song_versions_by_year, get_track_durations
 
 AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
 FEATURES = create_feature_map(AUDIO_DIRS)
@@ -88,11 +88,18 @@ def sliding_mean(data, window=4):
 def lineplot_song_versions(song, features):
     versions_by_years = sorted(get_song_versions_by_year(song).iteritems())
     years = [str(y).replace('19', '') for y, v in versions_by_years]
-    labels = ['versions'] + features
+    labels = ['versions', 'duration'] + features
     yearly_features = []
+    #version count
     num_versions = [len(v) for y, v in versions_by_years]
     yearly_features.append(num_versions)
     title = song + ' ('+ str(sum(num_versions)) +' versions)'
+    #version durations
+    durations = []
+    for year, versions in versions_by_years:
+        durations.append(np.array(get_track_durations(versions)).mean())
+    yearly_features.append(durations)
+    #all other features
     for j, feature in enumerate(features):
         current_feature = []
         print song, feature, '('+str(j+1)+'/'+str(len(features))+')'
@@ -109,7 +116,7 @@ def lineplot_song_versions(song, features):
 def plot_all_songs(features):
     song_names = get_all_song_names()
     for i, song in enumerate(song_names):
-        print song, 'S'+str(i)+'/'+str(len(song_names))
+        print song, str(i+1)+'/'+str(len(song_names))
         lineplot_song_versions(song, features)
         #print '--------------------------------------'
 
