@@ -104,7 +104,7 @@ def lineplot_song_versions(song, features):
         yearly_features.append(current_feature)
     yearly_features = [normalize(yf) for yf in yearly_features]
     yearly_features = [sliding_mean(yf) for yf in yearly_features]
-    lineplot(yearly_features, labels, years, title, 'results/'+song+'_overview.png')
+    lineplot(yearly_features, labels, years, title, 'results/'+song+'_overview2.png')
 
 def plot_all_songs(features):
     song_names = get_all_song_names()

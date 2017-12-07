@@ -61,7 +61,7 @@ def simplify_song_map():
 
 
 def get_song_versions_by_year(songname):
-    versions = read_json(SONG_MAP2)[songname]
+    versions = read_json(TOP_SONG_MAP)[songname]
     by_year = defaultdict(list)
     for track in versions:
         by_year[track['year']].append({i:track[i] for i in track if i!='year'})
