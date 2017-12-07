@@ -1,6 +1,7 @@
 import os, json
 from collections import defaultdict
 import internetarchive as ia
+from mutagen.mp3 import MP3
 
 AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
 SBD_ITEMS = 'data/sbd_items.json'
@@ -34,16 +35,7 @@ def get_tracks(item):
     return filter(lambda i: 'track' in i and '.mp3' in i['name'], item['files'])
 
 def get_track_durations(ids_and_tracks):
-    global LOADED_SBD
-    if LOADED_SBD is None:
-        LOADED_SBD = read_json(SBD_ITEMS)
-    durations = []
-    for it in ids_and_tracks:
-        files = LOADED_SBD[it['recording']]['files']
-        track = [f for f in files if f['name'] == it['track']]
-        m, s = [int(t) for t in track[0]['length'].split(':')]
-        durations.append(m*60+s)
-    print ids_and_tracks, durations
+    durations = [MP3(AUDIO_DIRS+it['recording']+'/'+it['track']).info.length for it in ids_and_tracks]
     return durations
 
 def create_song_map():

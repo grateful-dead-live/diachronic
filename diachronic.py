@@ -91,10 +91,12 @@ def lineplot_song_versions(song, features):
     labels = ['versions', 'duration'] + features
     yearly_features = []
     #version count
+    print song, 'version count'
     num_versions = [len(v) for y, v in versions_by_years]
     yearly_features.append(num_versions)
     title = song + ' ('+ str(sum(num_versions)) +' versions)'
     #version durations
+    print song, 'duration'
     durations = []
     for year, versions in versions_by_years:
         durations.append(np.array(get_track_durations(versions)).mean())
