@@ -14,8 +14,12 @@ def init(dir):
     FEATURES = list(TO_CATEGORY.keys())
 
 def create_feature_map(dir):
-    #TODO IMPLEMENT
-    return get_all_features(dir)
+    features = {name: {'log': True} for name in get_all_features(dir)}
+    #TODO UPDATE!!!
+    nonlog = ['bpm', 'beats_count', 'key_edma', 'mfcc', 'zerocrossingrate']
+    [features[f].update({'log': False}) for f in nonlog]
+    return features
+
 
 def get_all_files(path, extension):
     files = [root+'/'+name for root, dirs, files in os.walk(path) for name in files]

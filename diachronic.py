@@ -126,6 +126,8 @@ def lineplot_song_versions(song, features, extension):
             current_feature.append(get_summarized_features(versions, feature))
         if feature in VAMP_FEATURES and VAMP_FEATURES[feature]['log']:
             current_feature = [math.log(f) for f in current_feature]
+        if feature in ESSENTIA_FEATURES and ESSENTIA_FEATURES[feature]['log']:
+            current_feature = [math.log(f) for f in current_feature]
         yearly_features.append(current_feature)
     yearly_features = [normalize(yf) for yf in yearly_features]
     yearly_features = [sliding_mean(yf) for yf in yearly_features]
@@ -150,4 +152,5 @@ def plot_all_songs_and_features():
 #plot_all_songs(['zerocrossingrate', 'average_loudness', 'barkbands_crest', 'spectral_centroid', 'spectral_spread'], 'essentia3')
 
 #COMPARISON
+plot_all_songs(['zerocrossingrate', 'zcr', 'average_loudness', 'loudness', 'spectral_centroid', 'centroid'], 'compare2')
 plot_all_songs(['bpm', 'tempo', 'beats_count', 'beats'], 'compare')
