@@ -29,7 +29,7 @@ def get_all_features(dir):
 def load_feature_median(file, feature):
     with open(file, 'r') as lfile:
         feature = json.load(lfile)[TO_CATEGORY[feature]][feature]
-    if median in feature:
+    if isinstance(feature, dict) and 'median' in feature:
         return feature['median']
     else:
         return feature
