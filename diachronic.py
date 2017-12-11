@@ -4,39 +4,52 @@ from sklearn.preprocessing import normalize as sklnorm
 import seaborn as sns
 import matplotlib.pyplot as plt
 import internetarchive as ia
-from hispeedfeatures import load_feature, get_all_features, get_all_n3_files, create_feature_map
+import hispeedfeatures as vamp
+import essentiafeatures as essentia
 from archive import get_all_song_names, get_song_versions_by_year, get_track_durations
 
 AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
-FEATURES = create_feature_map(AUDIO_DIRS)
+VAMP_FEATURES = vamp.create_feature_map(AUDIO_DIRS)
 
 
-def get_n3_file_of_type(path_and_audio, type):
+def get_vamp_file_of_type(path_and_audio, type):
     path = AUDIO_DIRS+path_and_audio['recording']
     audio = path_and_audio['track'].split('.')[0]
     return [f for f in get_all_n3_files(path) if audio in f and type in f]
 
-def get_n3_files_of_type(paths_and_audio, type):
-    return [f for pa in paths_and_audio for f in get_n3_file_of_type(pa, type)]
+def get_vamp_files_of_type(paths_and_audio, type):
+    return [f for pa in paths_and_audio for f in get_vamp_file_of_type(pa, type)]
+
+def get_essentia_file(path_and_audio):
+    path = AUDIO_DIRS+path_and_audio['recording']
+    audio = path_and_audio['track'].split('.')[0]
+    return path+'/'+audio+'.essentia'
+
+def get_essentia_files(paths_and_audio):
+    return [get_essentia_file(pa) for pa in paths_and_audio]
 
 def load_features(featurefiles):
-    features = map(load_feature, featurefiles)
+    features = [vamp.load_feature(f) for f in featurefiles]
     #only non-empty features...
     return filter(lambda f: f.shape[0] > 0, features)
 
-def get_joined_features(paths_and_audio, name):
+def get_vamp_features(paths_and_audio, name):
     features = load_features(get_n3_files_of_type(paths_and_audio, name))
-    if FEATURES[name]['events']:
+    if VAMP_FEATURES[name]['events']:
         return [len(f) for f in features]
     else:
         return [np.median(f) for f in features]#np.concatenate(features)
 
+def get_essentia_features(paths_and_audio, name):
+    files = get_essentia_files(paths_and_audio)
+    return [essentia.load_feature_median(f, name) for f in files]
+
 def get_summarized_features(paths_and_audio, name):
-    features = get_joined_features(paths_and_audio, name)
-    if FEATURES[name]['events']:
-        return np.mean(features)
+    if name in VAMP_FEATURES:
+        features = get_vamp_features(paths_and_audio, name)
     else:
-        return np.mean(features)#np.median(features)
+        features = get_essentia_features(paths_and_audio, name)
+    return np.mean(features)
 
 def boxplot_features(features, file):
     plot = sns.boxplot(data=features, showfliers=False)
@@ -108,7 +121,7 @@ def lineplot_song_versions(song, features, extension):
         for year, versions in versions_by_years:
             #print song, feature, '('+str(j+1)+'/'+str(len(features))+')', year
             current_feature.append(get_summarized_features(versions, feature))
-        if FEATURES[feature]['log']:
+        if VAMP_FEATURES[feature]['log']:
             current_feature = [math.log(f) for f in current_feature]
         yearly_features.append(current_feature)
     yearly_features = [normalize(yf) for yf in yearly_features]
@@ -125,10 +138,7 @@ def plot_all_songs(features, extension):
 def plot_all_songs_and_features():
     plot_all_songs(get_all_features(AUDIO_DIRS))
 
-#check_stats()
+#plot_all_songs(['inharmonicity', 'zcr', 'loudness', 'crest', 'centroid', 'spread'], 'overview3')
+#plot_all_songs(['tempo', 'onsets', 'amplitude', 'beats'], 'overview2')
+plot_all_songs(['dissonance'], 'essentia')
 
-#boxplot_song_versions(SONG_NAME, 'tempo')
-#lineplot_song_versions('big river', ['amplitude'])
-plot_all_songs(['inharmonicity', 'zcr', 'loudness', 'crest', 'centroid', 'spread'], 'overview3')
-plot_all_songs(['tempo', 'onsets', 'amplitude', 'beats'], 'overview2')
-#test_plot()
