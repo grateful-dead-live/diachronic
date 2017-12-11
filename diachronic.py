@@ -19,7 +19,7 @@ def to_path_and_stem(path_and_audio):
 
 def get_vamp_file_of_type(path_and_audio, type):
     (path, stem) = to_path_and_stem(path_and_audio)
-    return [f for f in get_all_n3_files(path) if stem in f and type in f]
+    return [f for f in vamp.get_all_n3_files(path) if stem in f and type in f]
 
 def get_vamp_files_of_type(paths_and_audio, type):
     return [f for pa in paths_and_audio for f in get_vamp_file_of_type(pa, type)]
@@ -37,7 +37,7 @@ def load_features(featurefiles):
     return filter(lambda f: f.shape[0] > 0, features)
 
 def get_vamp_features(paths_and_audio, name):
-    features = load_features(get_n3_files_of_type(paths_and_audio, name))
+    features = load_features(get_vamp_files_of_type(paths_and_audio, name))
     if VAMP_FEATURES[name]['events']:
         return [len(f) for f in features]
     else:
@@ -141,8 +141,13 @@ def plot_all_songs(features, extension):
 def plot_all_songs_and_features():
     plot_all_songs(get_all_features(AUDIO_DIRS))
 
+#VAMP
 #plot_all_songs(['tempo', 'onsets', 'amplitude', 'beats'], 'overview2')
 #plot_all_songs(['inharmonicity', 'zcr', 'loudness', 'crest', 'centroid', 'spread'], 'overview3')
-plot_all_songs(['bpm', 'average_loudness', 'beats_count'], 'essentia2')
-plot_all_songs(['zerocrossingrate', 'average_loudness', 'barkbands_crest', 'spectral_centroid', 'spectral_spread'], 'essentia3')
 
+#ESSENTIA
+#plot_all_songs(['bpm', 'average_loudness', 'beats_count'], 'essentia2')
+#plot_all_songs(['zerocrossingrate', 'average_loudness', 'barkbands_crest', 'spectral_centroid', 'spectral_spread'], 'essentia3')
+
+#COMPARISON
+plot_all_songs(['bpm', 'tempo', 'beats_count', 'beats'], 'compare')
