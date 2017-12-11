@@ -10,20 +10,23 @@ from archive import get_all_song_names, get_song_versions_by_year, get_track_dur
 
 AUDIO_DIRS = '../../thomasw/grateful_dead/lma_soundboards/sbd/'
 VAMP_FEATURES = vamp.create_feature_map(AUDIO_DIRS)
+ESSENTIA_FEATURES = essentia.create_feature_map(AUDIO_DIRS)
 
+def to_path_and_stem(path_and_audio):
+    path = AUDIO_DIRS+path_and_audio['recording']
+    audio = path_and_audio['track']
+    return (path, audio[:audio.rfind('.')])
 
 def get_vamp_file_of_type(path_and_audio, type):
-    path = AUDIO_DIRS+path_and_audio['recording']
-    audio = path_and_audio['track'].split('.')[0]
-    return [f for f in get_all_n3_files(path) if audio in f and type in f]
+    (path, stem) = to_path_and_stem(path_and_audio)
+    return [f for f in get_all_n3_files(path) if stem in f and type in f]
 
 def get_vamp_files_of_type(paths_and_audio, type):
     return [f for pa in paths_and_audio for f in get_vamp_file_of_type(pa, type)]
 
 def get_essentia_file(path_and_audio):
-    path = AUDIO_DIRS+path_and_audio['recording']
-    audio = path_and_audio['track'].split('.')[0]
-    return path+'/'+audio+'.essentia'
+    (path, stem) = to_path_and_stem(path_and_audio)
+    return path+'/'+stem+'.essentia'
 
 def get_essentia_files(paths_and_audio):
     return [get_essentia_file(pa) for pa in paths_and_audio]
@@ -121,7 +124,7 @@ def lineplot_song_versions(song, features, extension):
         for year, versions in versions_by_years:
             #print song, feature, '('+str(j+1)+'/'+str(len(features))+')', year
             current_feature.append(get_summarized_features(versions, feature))
-        if VAMP_FEATURES[feature]['log']:
+        if feature in VAMP_FEATURES and VAMP_FEATURES[feature]['log']:
             current_feature = [math.log(f) for f in current_feature]
         yearly_features.append(current_feature)
     yearly_features = [normalize(yf) for yf in yearly_features]
@@ -138,7 +141,8 @@ def plot_all_songs(features, extension):
 def plot_all_songs_and_features():
     plot_all_songs(get_all_features(AUDIO_DIRS))
 
-#plot_all_songs(['inharmonicity', 'zcr', 'loudness', 'crest', 'centroid', 'spread'], 'overview3')
 #plot_all_songs(['tempo', 'onsets', 'amplitude', 'beats'], 'overview2')
-plot_all_songs(['dissonance'], 'essentia')
+#plot_all_songs(['inharmonicity', 'zcr', 'loudness', 'crest', 'centroid', 'spread'], 'overview3')
+plot_all_songs(['bpm', 'average_loudness', 'beats_count'], 'essentia2')
+plot_all_songs(['zerocrossingrate', 'average_loudness', 'barkbands_crest', 'spectral_centroid', 'spectral_spread'], 'essentia3')
 

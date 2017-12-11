@@ -1,22 +1,21 @@
-import os
-import numpy as np
-from collections import OrderedDict
+import os, json
 
 FEATURES = None
 TO_CATEGORY = None
 
 def init(dir):
+    global FEATURES, TO_CATEGORY
     #find features in first file of first folder
     dir = dir+'/'+os.listdir(dir)[1]
     with open(get_all_files(dir, '.essentia')[0], 'r') as lfile:
         essentia = json.load(lfile)
     categories = list(essentia.keys())
-    TO_CATEGORY = {f:c for f in c.keys() for c in categories}
+    TO_CATEGORY = {f:c for c in categories for f in essentia[c].keys()}
     FEATURES = list(TO_CATEGORY.keys())
 
 def create_feature_map(dir):
     #TODO IMPLEMENT
-    return
+    return get_all_features(dir)
 
 def get_all_files(path, extension):
     files = [root+'/'+name for root, dirs, files in os.walk(path) for name in files]
@@ -29,4 +28,8 @@ def get_all_features(dir):
 
 def load_feature_median(file, feature):
     with open(file, 'r') as lfile:
-        return json.load(lfile)[TO_CATEGORY[feature]][feature]['median']
+        feature = json.load(lfile)[TO_CATEGORY[feature]][feature]
+    if median in feature:
+        return feature['median']
+    else:
+        return feature
