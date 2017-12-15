@@ -46,7 +46,8 @@ def get_vamp_features(paths_and_audio, name):
 
 def get_essentia_features(paths_and_audio, name):
     files = get_essentia_files(paths_and_audio)
-    return [essentia.load_feature_median(f, name) for f in files]
+    medians = [essentia.load_feature_median(f, name) for f in files]
+    return [m for m in medians if m is not None]
 
 def get_summarized_features(paths_and_audio, name):
     if name in VAMP_FEATURES:

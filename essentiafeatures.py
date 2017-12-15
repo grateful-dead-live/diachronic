@@ -31,9 +31,14 @@ def get_all_features(dir):
     return FEATURES
 
 def load_feature_median(file, feature):
-    with open(file, 'r') as lfile:
-        feature = json.load(lfile)[TO_CATEGORY[feature]][feature]
-    if isinstance(feature, dict) and 'median' in feature:
-        return feature['median']
-    else:
-        return feature
+    try:
+        with open(file, 'r') as lfile:
+            feature = json.load(lfile)[TO_CATEGORY[feature]][feature]
+        if isinstance(feature, dict) and 'median' in feature:
+            return feature['median']
+        else:
+            return feature
+    except IOError, e:
+        print "error loading ", file
+        #../../thomasw/grateful_dead/lma_soundboards/sbd/gd1988-09-22.133697.upd-sbd.tobin.flac16/gd1988-09-22d1t06 fixed.essentia
+        return None
