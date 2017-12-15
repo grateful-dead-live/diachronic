@@ -9,6 +9,8 @@ SONG_MAP = 'data/song_map.json'
 SONG_MAP2 = 'data/song_map2.json'
 TOP_SONG_MAP = 'data/top_song_map2.json'
 
+ACTIVE_SONG_MAP = TOP_SONG_MAP
+
 LOADED_SBD = None
 
 def read_json(file):
@@ -67,14 +69,14 @@ def simplify_song_map():
     write_json(song_map2, SONG_MAP2)
 
 def get_song_versions_by_year(songname):
-    versions = read_json(TOP_SONG_MAP)[songname]
+    versions = read_json(ACTIVE_SONG_MAP)[songname]
     by_year = defaultdict(list)
     for track in versions:
         by_year[track['year']].append({i:track[i] for i in track if i!='year'})
     return by_year
 
 def get_all_song_names():
-    return list(read_json(TOP_SONG_MAP).keys())
+    return list(read_json(ACTIVE_SONG_MAP).keys())
 
 #save_items()
 #create_song_map()

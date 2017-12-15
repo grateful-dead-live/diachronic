@@ -1,5 +1,6 @@
 import os, math
 import numpy as np
+from collections import defaultdict
 from sklearn.preprocessing import normalize as sklnorm
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -101,18 +102,17 @@ def sliding_mean(data, window=4):
     means = np.append(np.array(beginning), np.array(means))
     return np.append(np.array(means), np.array(end))
 
-def lineplot_song_versions(song, features, extension):
-    versions_by_years = sorted(get_song_versions_by_year(song).iteritems())
+def lineplot_versions_by_year(versions_by_years, title, features, extension):
     years = [str(y).replace('19', '') for y, v in versions_by_years]
     labels = ['versions', 'duration'] + features
     yearly_features = []
     #version count
-    print song, 'version count'
+    print title, 'version count'
     num_versions = [len(v) for y, v in versions_by_years]
     yearly_features.append(num_versions)
-    title = song + ' ('+ str(sum(num_versions)) +' versions)'
+    title = title + ' ('+ str(sum(num_versions)) +' versions)'
     #version durations
-    print song, 'duration'
+    print title, 'duration'
     durations = []
     for year, versions in versions_by_years:
         durations.append(np.array(get_track_durations(versions)).mean())
@@ -120,9 +120,9 @@ def lineplot_song_versions(song, features, extension):
     #all other features
     for j, feature in enumerate(features):
         current_feature = []
-        print song, feature, '('+str(j+1)+'/'+str(len(features))+')'
+        print title, feature, '('+str(j+1)+'/'+str(len(features))+')'
         for year, versions in versions_by_years:
-            #print song, feature, '('+str(j+1)+'/'+str(len(features))+')', year
+            #print title, feature, '('+str(j+1)+'/'+str(len(features))+')', year
             current_feature.append(get_summarized_features(versions, feature))
         if feature in VAMP_FEATURES and VAMP_FEATURES[feature]['log']:
             current_feature = [math.log(f) for f in current_feature]
@@ -131,7 +131,25 @@ def lineplot_song_versions(song, features, extension):
         yearly_features.append(current_feature)
     yearly_features = [normalize(yf) for yf in yearly_features]
     yearly_features = [sliding_mean(yf) for yf in yearly_features]
-    lineplot(yearly_features, labels, years, title, 'results/'+song+'_'+extension+'.png')
+    lineplot(yearly_features, labels, years, title, 'results/'+title+'_'+extension+'.png')
+
+def lineplot_song_versions(song, features, extension):
+    versions_by_years = sorted(get_song_versions_by_year(song).iteritems())
+    lineplot_versions_by_year(versions_by_years)
+
+def merge_dicts(dicts):
+    merged = defaultdict(list)
+    for d in dicts:
+        for key, value in d.iteritems():
+            merged[key].extend(value)
+    return merged
+
+def plot_features_across_all_songs(features, extension):
+    songs = get_all_song_names()
+    versions_by_years = [get_song_versions_by_year(s) for s in songs]
+    versions_by_years = merge_dicts(versions_by_years)
+    versions_by_years = sorted(versions_by_years.iteritems())
+    lineplot_versions_by_year(versions_by_years, 'ALL', features, extension)
 
 def plot_all_songs(features, extension):
     song_names = get_all_song_names()
@@ -143,6 +161,7 @@ def plot_all_songs(features, extension):
 def plot_all_songs_and_features():
     plot_all_songs(get_all_features(AUDIO_DIRS))
 
+
 #VAMP
 #plot_all_songs(['tempo', 'onsets', 'amplitude', 'beats'], 'overview2')
 #plot_all_songs(['inharmonicity', 'zcr', 'loudness', 'crest', 'centroid', 'spread'], 'overview3')
@@ -152,5 +171,8 @@ def plot_all_songs_and_features():
 #plot_all_songs(['zerocrossingrate', 'average_loudness', 'barkbands_crest', 'spectral_centroid', 'spectral_spread'], 'essentia3')
 
 #COMPARISON
-plot_all_songs(['zerocrossingrate', 'zcr', 'average_loudness', 'loudness', 'spectral_centroid', 'centroid'], 'compare2')
-plot_all_songs(['bpm', 'tempo', 'beats_count', 'beats'], 'compare')
+#plot_all_songs(['zerocrossingrate', 'zcr', 'average_loudness', 'loudness', 'spectral_centroid', 'centroid'], 'compare2')
+#plot_all_songs(['bpm', 'tempo', 'beats_count', 'beats'], 'compare')
+
+#ACROSS ALL SONGS
+plot_features_across_all_songs(['bpm', 'beats_count', 'average_loudness'], 'overview')

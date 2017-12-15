@@ -16,7 +16,7 @@ def init(dir):
 def create_feature_map(dir):
     features = {name: {'log': True} for name in get_all_features(dir)}
     #TODO UPDATE!!!
-    nonlog = ['bpm', 'beats_count', 'key_edma', 'mfcc', 'zerocrossingrate']
+    nonlog = ['bpm', 'beats_count', 'key_edma', 'mfcc', 'zerocrossingrate', 'average_loudness']
     [features[f].update({'log': False}) for f in nonlog]
     return features
 
